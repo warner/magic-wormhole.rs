@@ -1,7 +1,7 @@
 [workspace]
 members = [
         "core",
-#        "io/tokio",
+        "io/tokio",
         "io/blocking",
         "cli",
 ]
