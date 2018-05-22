@@ -6,7 +6,6 @@ authors = ["Brian Warner <warner@lothar.com>"]
 [dependencies]
 magic-wormhole-core = { version = "0.0.1", path = "../../core" }
 websocket = "0.20"
-spake2 = "0.0.4"
 futures = "0.1"
 tokio-core = "0.1"
 bytes = "0.4"
