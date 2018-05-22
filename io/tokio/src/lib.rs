@@ -28,6 +28,7 @@ impl Sink<[u8], Error> for Writer {
 */
 
 pub struct Wormhole {
+    #[allow(dead_code)]
     core: WormholeCore,
     //pub reader: Stream<[u8], Error>,
     // maybe bytes::Bytes? or Box<&[u8]>? or Box<bytes::Buf> ?
@@ -45,7 +46,7 @@ impl Sink for Wormhole {
     type SinkItem = Vec<u8>;
     type SinkError = Error;
 
-    fn start_send(&mut self, item: Vec<u8>) -> StartSend<Vec<u8>, Error> {
+    fn start_send(&mut self, _item: Vec<u8>) -> StartSend<Vec<u8>, Error> {
         unimplemented!()
     }
 
@@ -87,7 +88,7 @@ impl Wormhole {
         Box::new(futures::future::ok("4-purple-sausages".to_string()))
     }
 
-    pub fn set_code(&mut self, code: &str) -> Result<(), Error> {
+    pub fn set_code(&mut self, _code: &str) -> Result<(), Error> {
         Ok(())
     }
 
