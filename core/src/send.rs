@@ -36,7 +36,7 @@ impl Send {
     }
 
     pub fn process(&mut self, event: SendEvent) -> Events {
-        println!(
+        debug!(
             "send: current state = {:?}, got event = {:?}",
             self.state, event
         );

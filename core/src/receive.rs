@@ -31,7 +31,7 @@ impl Receive {
     pub fn process(&mut self, event: ReceiveEvent) -> Events {
         use self::State::*;
 
-        println!(
+        debug!(
             "receive: current state = {:?}, got event = {:?}",
             self.state, event
         );

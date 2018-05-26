@@ -90,7 +90,7 @@ impl Rendezvous {
 
     pub fn process(&mut self, e: RendezvousEvent) -> Events {
         use events::RendezvousEvent::*;
-        println!("rendezvous: {:?}", e);
+        debug!("rendezvous: {:?}", e);
         match e {
             Start => self.start(),
             TxBind(appid, side) => self.send(bind(&appid, &side)),
@@ -147,7 +147,7 @@ impl Rendezvous {
     }
 
     fn message_received(&mut self, _handle: WSHandle, message: &str) -> Events {
-        println!("msg is {:?}", message);
+        debug!("msg is {:?}", message);
         // TODO: log+ignore unrecognized messages. They should flunk unit
         // tests, but not break normal operation
         let m = deserialize(message);
@@ -295,7 +295,7 @@ mod test {
         // L_Connected and A_Connected
         assert_eq!(actions.len(), 5);
         let e = actions.remove(0);
-        println!("e is {:?}", e);
+        debug!("e is {:?}", e);
         let b;
         match e {
             Rendezvous(b0) => {
@@ -324,7 +324,7 @@ mod test {
         actions = r.process(b).events;
         assert_eq!(actions.len(), 1);
         let e = actions.remove(0);
-        println!("e is {:?}", e);
+        debug!("e is {:?}", e);
         match e {
             IO(IOAction::WebSocketSendMessage(wsh0, m)) => {
                 assert_eq!(wsh0, wsh);

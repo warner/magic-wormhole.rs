@@ -33,7 +33,7 @@ impl Order {
     pub fn process(&mut self, event: OrderEvent) -> Events {
         use self::State::*;
 
-        println!(
+        debug!(
             "order: current state = {:?}, got event = {:?}",
             self.state, event
         );

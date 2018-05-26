@@ -58,7 +58,7 @@ impl Mailbox {
     pub fn process(&mut self, event: MailboxEvent) -> Events {
         use self::State::*;
 
-        println!(
+        debug!(
             "mailbox: current state = {:?}, got event = {:?}",
             self.state, event
         );

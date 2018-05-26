@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -101,13 +104,18 @@ impl WormholeCore {
     }
 
     pub fn do_api(&mut self, event: APIEvent) -> Vec<Action> {
-        println!("api: {:?}", event);
+        // note: run with RUST_LOG=debug to see these. You might want to
+        // "cargo build --examples" first, because the compiler emits a bunch
+        // of its own messages when this is switched on. Also this doesn't
+        // actually work, the WormholeCore messages aren't displayed,
+        // probably because of a missing env_logger::init()
+        debug!("api: {:?}", event);
         let events = self.boss.process_api(event);
         self._execute(events)
     }
 
     pub fn do_io(&mut self, event: IOEvent) -> Vec<Action> {
-        println!("io: {:?}", event);
+        debug!("io: {:?}", event);
         let events = self.rendezvous.process_io(event);
         self._execute(events)
     }
@@ -147,7 +155,7 @@ impl WormholeCore {
         event_queue.append(&mut VecDeque::from(events.events));
 
         while let Some(e) = event_queue.pop_front() {
-            println!("event: {:?}", e);
+            debug!("event: {:?}", e);
             use events::Event::*; // machine names
             let actions: Events = match e {
                 API(a) => {
@@ -176,7 +184,7 @@ impl WormholeCore {
             for a in actions.events {
                 // TODO use iter
                 // TODO: insert in front of queue: depth-first processing
-                println!("  out: {:?}", a);
+                debug!("  out: {:?}", a);
                 event_queue.push_back(a);
             }
         }
