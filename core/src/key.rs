@@ -1,10 +1,9 @@
 extern crate hex;
 
 use hkdf::Hkdf;
+use ring::{aead, rand, rand::SecureRandom};
 use serde_json::{self, Value};
 use sha2::{Digest, Sha256};
-use sodiumoxide;
-use sodiumoxide::crypto::secretbox;
 use spake2::{Ed25519Group, Identity, Password, SPAKE2};
 use std::mem;
 
@@ -150,38 +149,57 @@ fn extract_pake_msg(body: &[u8]) -> Option<String> {
         .ok()
 }
 
+fn gen_nonce(buf: &mut [u8]) {
+    let sr = rand::SystemRandom::new();
+    sr.fill(buf).unwrap();
+}
+
 fn encrypt_data_with_nonce(
     key: &[u8],
     plaintext: &[u8],
-    noncebuf: &[u8],
+    nonce: &[u8],
 ) -> Vec<u8> {
-    let nonce = secretbox::Nonce::from_slice(&noncebuf).unwrap();
-    let sodium_key = secretbox::Key::from_slice(&key).unwrap();
-    let ciphertext = secretbox::seal(&plaintext, &nonce, &sodium_key);
-    let mut nonce_and_ciphertext = Vec::new();
-    nonce_and_ciphertext.extend(nonce.as_ref().to_vec());
-    nonce_and_ciphertext.extend(ciphertext);
-    nonce_and_ciphertext
+    let box_key =
+        aead::SealingKey::new(&aead::CHACHA20_POLY1305, &key).unwrap();
+    let alg = box_key.algorithm();
+    let mut buf = nonce.to_vec();
+    buf.extend_from_slice(plaintext);
+    let l = buf.len();
+    buf.resize(l + alg.tag_len(), 0);
+    let ad = vec![];
+    aead::seal_in_place(
+        &box_key,
+        &nonce,
+        &ad,
+        &mut buf[alg.nonce_len()..],
+        alg.tag_len(),
+    ).unwrap();
+    buf
 }
 
 pub fn encrypt_data(key: &[u8], plaintext: &[u8]) -> (Vec<u8>, Vec<u8>) {
-    let noncebuf = secretbox::gen_nonce().as_ref().to_vec();
-    let nonce_and_ciphertext =
-        encrypt_data_with_nonce(key, plaintext, &noncebuf);
-    (noncebuf, nonce_and_ciphertext)
+    let alg = &aead::CHACHA20_POLY1305;
+    let mut nonce = vec![0u8; alg.nonce_len()];
+    gen_nonce(&mut nonce);
+    let buf = encrypt_data_with_nonce(&key, &plaintext, &nonce);
+    (nonce, buf)
 }
 
 // TODO: return an Result with a proper error type
 // secretbox::open() returns Result<Vec<u8>, ()> which is not helpful.
 pub fn decrypt_data(key: &[u8], encrypted: &[u8]) -> Option<Vec<u8>> {
-    let (nonce, ciphertext) =
-        encrypted.split_at(sodiumoxide::crypto::secretbox::NONCEBYTES);
-    assert_eq!(nonce.len(), sodiumoxide::crypto::secretbox::NONCEBYTES);
-    secretbox::open(
-        &ciphertext,
-        &secretbox::Nonce::from_slice(nonce).unwrap(),
-        &secretbox::Key::from_slice(&key).unwrap(),
-    ).ok()
+    let box_key =
+        aead::OpeningKey::new(&aead::CHACHA20_POLY1305, &key).unwrap();
+    let alg = box_key.algorithm();
+    let nonce = &encrypted[0..alg.nonce_len()];
+    let ad = vec![];
+    let mut buf = encrypted[alg.nonce_len()..].to_vec();
+    //vec![0u8; encrypted.len() - alg.nonce_len()];
+    //buf.as_mut_slice().copy_from_slice(&encrypted[alg.nonce_len()..]);
+    match aead::open_in_place(&box_key, &nonce, &ad, 0, &mut buf) {
+        Ok(r) => Some(r.to_vec()),
+        Err(_) => None,
+    }
 }
 
 fn sha256_digest(input: &[u8]) -> Vec<u8> {
@@ -206,7 +224,7 @@ pub fn derive_phase_key(side: &str, key: &Key, phase: &str) -> Vec<u8> {
     purpose_vec.extend(side_digest);
     purpose_vec.extend(phase_digest);
 
-    let length = sodiumoxide::crypto::secretbox::KEYBYTES;
+    let length = aead::CHACHA20_POLY1305.key_len();
     derive_key(&key.to_vec(), &purpose_vec, length)
 }
 

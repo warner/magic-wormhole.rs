@@ -9,9 +9,9 @@ extern crate hex;
 extern crate hkdf;
 extern crate rand;
 extern crate regex;
+extern crate ring;
 extern crate rustc_serialize;
 extern crate sha2;
-extern crate sodiumoxide;
 extern crate spake2;
 
 #[macro_use]
