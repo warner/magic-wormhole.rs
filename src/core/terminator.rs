@@ -1,13 +1,13 @@
-use super::events::Events;
+use super::event::Events;
 // we process these
-use super::events::TerminatorEvent::{
+use super::event::TerminatorEvent::{
     self, Close, MailboxDone, NameplateDone, Stopped,
 };
 // we emit these
-use super::events::BossEvent::Closed as B_Closed;
-use super::events::MailboxEvent::Close as M_Close;
-use super::events::NameplateEvent::Close as N_Close;
-use super::events::RendezvousEvent::Stop as RC_Stop;
+use super::event::BossEvent::Closed as B_Closed;
+use super::event::MailboxEvent::Close as M_Close;
+use super::event::NameplateEvent::Close as N_Close;
+use super::event::RendezvousEvent::Stop as RC_Stop;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum State {
@@ -126,10 +126,10 @@ impl TerminatorMachine {
 mod test {
     use super::*;
     use crate::core::api::Mood::*;
-    use crate::core::events::BossEvent::Closed as B_Closed;
-    use crate::core::events::MailboxEvent::Close as M_Close;
-    use crate::core::events::NameplateEvent::Close as N_Close;
-    use crate::core::events::RendezvousEvent::Stop as RC_Stop;
+    use crate::core::event::BossEvent::Closed as B_Closed;
+    use crate::core::event::MailboxEvent::Close as M_Close;
+    use crate::core::event::NameplateEvent::Close as N_Close;
+    use crate::core::event::RendezvousEvent::Stop as RC_Stop;
 
     #[test]
     fn test_transitions1() {

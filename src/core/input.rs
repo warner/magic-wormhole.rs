@@ -1,17 +1,17 @@
-use super::events::{Code, Events, Nameplate};
+use super::event::{Code, Events, Nameplate};
 use std::sync::Arc;
 // we process these
-use super::events::InputEvent::{
+use super::event::InputEvent::{
     self, ChooseNameplate, ChooseWords, GotNameplates, GotWordlist,
     RefreshNameplates, Start,
 };
 // we emit these
 use super::api::InputHelperError;
-use super::events::CodeEvent::{
+use super::event::CodeEvent::{
     FinishedInput as C_FinishedInput, GotNameplate as C_GotNameplate,
 };
-use super::events::ListerEvent::Refresh as L_Refresh;
-use super::events::Wordlist;
+use super::event::ListerEvent::Refresh as L_Refresh;
+use super::event::Wordlist;
 
 pub struct InputMachine {
     state: State,

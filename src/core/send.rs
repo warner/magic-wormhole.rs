@@ -1,9 +1,9 @@
-use super::events::{Events, Key, MySide, Phase};
+use super::event::{Events, Key, MySide, Phase};
 use super::key;
 // we process these
-use super::events::SendEvent;
+use super::event::SendEvent;
 // we emit these
-use super::events::MailboxEvent::AddMessage as M_AddMessage;
+use super::event::MailboxEvent::AddMessage as M_AddMessage;
 
 pub struct SendMachine {
     state: State,
@@ -74,7 +74,7 @@ impl SendMachine {
     }
 
     fn do_s0(&self, event: SendEvent) -> (State, Events, QueueStatus) {
-        use super::events::SendEvent::*;
+        use super::event::SendEvent::*;
         match event {
             GotVerifiedKey(ref key) => (
                 State::S1HaveVerifiedKey(key.clone()),
@@ -95,7 +95,7 @@ impl SendMachine {
         key: &Key,
         event: SendEvent,
     ) -> (State, Events, QueueStatus) {
-        use super::events::SendEvent::*;
+        use super::event::SendEvent::*;
         match event {
             GotVerifiedKey(_) => panic!(),
             Send(phase, plaintext) => {

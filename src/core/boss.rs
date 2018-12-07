@@ -1,5 +1,5 @@
 use super::api::Mood;
-use super::events::{Code, Events, Nameplate, Phase};
+use super::event::{Code, Events, Nameplate, Phase};
 use super::wordlist::default_wordlist;
 use serde_json::json;
 use std::str::FromStr;
@@ -10,20 +10,20 @@ use serde_json;
 
 // we process these
 use super::api::APIEvent;
-use super::events::BossEvent;
+use super::event::BossEvent;
 // we emit these
 use super::api::APIAction;
-use super::events::CodeEvent::{
+use super::event::CodeEvent::{
     AllocateCode as C_AllocateCode, InputCode as C_InputCode,
     SetCode as C_SetCode,
 };
-use super::events::InputEvent::{
+use super::event::InputEvent::{
     ChooseNameplate as I_ChooseNameplate, ChooseWords as I_ChooseWords,
     RefreshNameplates as I_RefreshNameplates,
 };
-use super::events::RendezvousEvent::Start as RC_Start;
-use super::events::SendEvent::Send as S_Send;
-use super::events::TerminatorEvent::Close as T_Close;
+use super::event::RendezvousEvent::Start as RC_Start;
+use super::event::SendEvent::Send as S_Send;
+use super::event::TerminatorEvent::Close as T_Close;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum State {
@@ -87,7 +87,7 @@ impl BossMachine {
     }
 
     pub fn process(&mut self, event: BossEvent) -> Events {
-        use super::events::BossEvent::*;
+        use super::event::BossEvent::*;
         match event {
             GotCode(code) => self.got_code(&code),
             GotKey(key) => events![APIAction::GotUnverifiedKey(key.clone())],
@@ -294,7 +294,7 @@ impl BossMachine {
 mod test {
     use super::*;
     use crate::core::api::{APIEvent, Mood};
-    use crate::core::events::{Key, RendezvousEvent, TerminatorEvent};
+    use crate::core::event::{Key, RendezvousEvent, TerminatorEvent};
 
     #[test]
     fn create() {

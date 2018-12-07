@@ -1,5 +1,5 @@
 #[macro_use]
-mod events;
+mod event;
 mod allocator;
 mod api;
 mod boss;
@@ -24,8 +24,8 @@ mod wordlist;
 use rustc_serialize::hex::ToHex;
 use std::collections::VecDeque;
 
-pub use self::events::{AppID, Code};
-use self::events::{Event, Events, MySide, Nameplate};
+pub use self::event::{AppID, Code};
+use self::event::{Event, Events, MySide, Nameplate};
 use self::util::random_bytes;
 
 pub use self::api::{
@@ -148,7 +148,7 @@ impl WormholeCore {
 
         while let Some(e) = event_queue.pop_front() {
             println!("event: {:?}", e);
-            use self::events::Event::*; // machine names
+            use self::event::Event::*; // machine names
             let actions: Events = match e {
                 API(a) => {
                     action_queue.push(Action::API(a));

@@ -9,14 +9,14 @@ use sodiumoxide::crypto::secretbox;
 use spake2::{Ed25519Group, Identity, Password, SPAKE2};
 use std::mem;
 
-use super::events::{AppID, Code, Events, Key, MySide, Phase};
+use super::event::{AppID, Code, Events, Key, MySide, Phase};
 use super::util;
 // we process these
-use super::events::KeyEvent;
+use super::event::KeyEvent;
 // we emit these
-use super::events::BossEvent::GotKey as B_GotKey;
-use super::events::MailboxEvent::AddMessage as M_AddMessage;
-use super::events::ReceiveEvent::GotKey as R_GotKey;
+use super::event::BossEvent::GotKey as B_GotKey;
+use super::event::MailboxEvent::AddMessage as M_AddMessage;
+use super::event::ReceiveEvent::GotKey as R_GotKey;
 
 #[derive(Debug, PartialEq, Eq)]
 enum State {
@@ -215,7 +215,7 @@ pub fn derive_phase_key(side: &str, key: &Key, phase: &str) -> Vec<u8> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::core::events::{AppID, MySide};
+    use crate::core::event::{AppID, MySide};
     use hex;
 
     #[test]

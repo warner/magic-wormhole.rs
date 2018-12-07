@@ -538,13 +538,13 @@ impl FromIterator<Event> for Events {
 macro_rules! events {
     ( ) => {
         {
-            use crate::core::events::Events;
+            use crate::core::event::Events;
             Events::new()
         }
     };
     ( $( $x:expr ),* $(,)*) => {
         {
-            use crate::core::events::Events;
+            use crate::core::event::Events;
             let mut temp_vec = Events::new();
             $(
                 temp_vec.push($x);

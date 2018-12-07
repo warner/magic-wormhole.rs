@@ -1,5 +1,5 @@
 use super::api::Mood;
-use super::events::{AppID, Mailbox, MySide};
+use super::event::{AppID, Mailbox, MySide};
 use super::util;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::{self, Value};

@@ -1,9 +1,9 @@
-use super::events::{Events, Phase, TheirSide};
+use super::event::{Events, Phase, TheirSide};
 // we process these
-use super::events::OrderEvent;
+use super::event::OrderEvent;
 // we emit these
-use super::events::KeyEvent::GotPake as K_GotPake;
-use super::events::ReceiveEvent::GotMessage as R_GotMessage;
+use super::event::KeyEvent::GotPake as K_GotPake;
+use super::event::ReceiveEvent::GotMessage as R_GotMessage;
 
 #[derive(Debug, PartialEq)]
 enum State {
@@ -67,7 +67,7 @@ impl OrderMachine {
     }
 
     fn do_s0(&self, event: OrderEvent) -> (State, Events, QueueStatus) {
-        use super::events::OrderEvent::*;
+        use super::event::OrderEvent::*;
         match event {
             GotMessage(side, phase, body) => {
                 if phase.to_string() == "pake" {
@@ -89,7 +89,7 @@ impl OrderMachine {
     }
 
     fn do_s1(&self, event: OrderEvent) -> (State, Events, QueueStatus) {
-        use super::events::OrderEvent::*;
+        use super::event::OrderEvent::*;
         match event {
             GotMessage(side, phase, body) => (
                 State::S1,

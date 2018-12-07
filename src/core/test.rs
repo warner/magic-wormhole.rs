@@ -1,5 +1,5 @@
 use super::api::Mood;
-use super::events::Phase;
+use super::event::Phase;
 
 #[test]
 fn test_phase() {

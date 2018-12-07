@@ -1,4 +1,4 @@
-use super::events::{Code, Key};
+use super::event::{Code, Key};
 use super::util::maybe_utf8;
 use hex;
 use serde_json::Value;

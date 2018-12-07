@@ -1,10 +1,10 @@
-use super::events::Events;
+use super::event::Events;
 // we process these
-use super::events::ListerEvent;
+use super::event::ListerEvent;
 // we emit these
-use super::events::InputEvent::GotNameplates as I_GotNameplates;
-use super::events::ListerEvent::*;
-use super::events::RendezvousEvent::TxList as RC_TxList;
+use super::event::InputEvent::GotNameplates as I_GotNameplates;
+use super::event::ListerEvent::*;
+use super::event::RendezvousEvent::TxList as RC_TxList;
 
 pub struct ListerMachine {
     state: State,
@@ -86,7 +86,7 @@ impl ListerMachine {
 #[cfg(test)]
 mod test {
     use super::{ListerMachine, State};
-    use crate::core::events::{
+    use crate::core::event::{
         InputEvent::GotNameplates, ListerEvent::*, Nameplate,
         RendezvousEvent::TxList,
     };

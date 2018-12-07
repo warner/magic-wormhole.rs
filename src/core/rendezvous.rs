@@ -8,7 +8,7 @@
 // more code and more states here
 
 use super::api::{TimerHandle, WSHandle};
-use super::events::{
+use super::event::{
     AppID, Events, Mailbox, MySide, Nameplate, Phase, TheirSide,
 };
 use super::server_messages::{
@@ -19,26 +19,26 @@ use hex;
 use serde_json;
 // we process these
 use super::api::IOEvent;
-use super::events::RendezvousEvent;
+use super::event::RendezvousEvent;
 // we emit these
 use super::api::IOAction;
-use super::events::AllocatorEvent::{
+use super::event::AllocatorEvent::{
     Connected as A_Connected, Lost as A_Lost, RxAllocated as A_RxAllocated,
 };
-use super::events::BossEvent::RxWelcome as B_RxWelcome;
-use super::events::ListerEvent::{
+use super::event::BossEvent::RxWelcome as B_RxWelcome;
+use super::event::ListerEvent::{
     Connected as L_Connected, Lost as L_Lost, RxNameplates as L_RxNamePlates,
 };
-use super::events::MailboxEvent::{
+use super::event::MailboxEvent::{
     Connected as M_Connected, Lost as M_Lost, RxClosed as M_RxClosed,
     RxMessage as M_RxMessage,
 };
-use super::events::NameplateEvent::{
+use super::event::NameplateEvent::{
     Connected as N_Connected, Lost as N_Lost, RxClaimed as N_RxClaimed,
     RxReleased as N_RxReleased,
 };
-use super::events::RendezvousEvent::TxBind as RC_TxBind; // loops around
-use super::events::TerminatorEvent::Stopped as T_Stopped;
+use super::event::RendezvousEvent::TxBind as RC_TxBind; // loops around
+use super::event::TerminatorEvent::Stopped as T_Stopped;
 
 #[derive(Debug, PartialEq)]
 enum State {
@@ -98,7 +98,7 @@ impl RendezvousMachine {
     }
 
     pub fn process(&mut self, e: RendezvousEvent) -> Events {
-        use super::events::RendezvousEvent::*;
+        use super::event::RendezvousEvent::*;
         println!("rendezvous: {:?}", e);
         match e {
             Start => self.start(),
@@ -271,18 +271,18 @@ mod test {
     use crate::core::api::IOAction;
     use crate::core::api::IOEvent;
     use crate::core::api::{TimerHandle, WSHandle};
-    use crate::core::events::AllocatorEvent::Lost as A_Lost;
-    use crate::core::events::Event::{Nameplate, Rendezvous, Terminator, IO};
-    use crate::core::events::ListerEvent::Lost as L_Lost;
-    use crate::core::events::MailboxEvent::Lost as M_Lost;
-    use crate::core::events::NameplateEvent::{
+    use crate::core::event::AllocatorEvent::Lost as A_Lost;
+    use crate::core::event::Event::{Nameplate, Rendezvous, Terminator, IO};
+    use crate::core::event::ListerEvent::Lost as L_Lost;
+    use crate::core::event::MailboxEvent::Lost as M_Lost;
+    use crate::core::event::NameplateEvent::{
         Connected as N_Connected, Lost as N_Lost,
     };
-    use crate::core::events::RendezvousEvent::{
+    use crate::core::event::RendezvousEvent::{
         Stop as RC_Stop, TxBind as RC_TxBind,
     };
-    use crate::core::events::TerminatorEvent::Stopped as T_Stopped;
-    use crate::core::events::{AppID, MySide};
+    use crate::core::event::TerminatorEvent::Stopped as T_Stopped;
+    use crate::core::event::{AppID, MySide};
     use crate::core::server_messages::{deserialize_outbound, OutboundMessage};
 
     #[test]
