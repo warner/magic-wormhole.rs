@@ -9,6 +9,18 @@ use super::events::AllocatorEvent::{
 use super::events::CodeEvent::Allocated as C_Allocated;
 use super::events::RendezvousEvent::TxAllocate as RC_TxAllocate;
 
+/*
+use machine::{machine};
+machine!(
+    enum Allocator {
+        IdleDisconnected,
+        IdleConnected,
+        AllocatingDisconnected { wordlist: Arc<Wordlist> },
+        AllocatingConnected { wordlist: Arc<Wordlist> },
+    }
+);
+*/
+
 pub struct AllocatorMachine {
     state: State,
 }
