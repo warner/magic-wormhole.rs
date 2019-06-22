@@ -2,4 +2,5 @@
 #![deny(warnings)]
 
 pub mod core;
+mod dilate;
 pub mod io;
