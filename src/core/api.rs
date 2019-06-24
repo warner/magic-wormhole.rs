@@ -87,11 +87,28 @@ impl Error for InputHelperError {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug)]
+pub enum WormholeError {
+    ConnectionError(String),
+    ServerError(String),
+}
+
+impl Clone for WormholeError {
+    fn clone(&self) -> Self {
+        use WormholeError::*;
+        match self {
+            ConnectionError(msg) => ConnectionError(msg.clone()),
+            ServerError(msg) => ServerError(msg.clone()),
+        }
+    }
+}
+
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Mood {
     Happy,
     Lonely,
-    Error,
+    Errory(WormholeError),
     Scared,
     Unwelcome,
 }
@@ -124,7 +141,7 @@ pub enum APIAction {
     GotVerifier(Vec<u8>),
     GotVersions(Value),
     GotMessage(Vec<u8>),
-    GotClosed(Mood),
+    GotClosed(Result<Mood, WormholeError>),
 }
 
 impl fmt::Debug for APIAction {
@@ -185,7 +202,7 @@ pub enum IOEvent {
     TimerExpired(TimerHandle),
     WebSocketConnectionMade(WSHandle),
     WebSocketMessageReceived(WSHandle, String),
-    WebSocketConnectionLost(WSHandle),
+    WebSocketConnectionLost(WSHandle, String), // error description
 }
 
 #[derive(Debug, PartialEq)]

@@ -149,9 +149,9 @@ pub enum AllocatorEvent {
 #[allow(dead_code)] // TODO: drop dead code directive once core is complete
 #[derive(PartialEq)]
 pub enum BossEvent {
+    ConnectionError(String),
     RxWelcome(Value),
-    RxError,
-    Error,
+    RxError(String),
     Closed,
     GotCode(Code),
     GotKey(Key), // TODO: fixed length?
@@ -166,7 +166,7 @@ impl fmt::Debug for BossEvent {
         use self::BossEvent::*;
         let t = match *self {
             RxWelcome(ref v) => format!("RxWelcome({:?})", v),
-            RxError => "RxError".to_string(),
+            RxError(msg) => format!("RxError({})", msg),
             Error => "Error".to_string(),
             Closed => "Closed".to_string(),
             GotCode(ref code) => format!("GotCode({:?})", code),

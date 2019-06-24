@@ -111,7 +111,10 @@ pub enum InboundMessage {
     Pong {
         pong: u32,
     },
-    //Error { error: String, orig: Message },
+    Error {
+        error: String,
+        orig: OutboundMessage,
+    },
 }
 
 pub fn deserialize(s: &str) -> InboundMessage {

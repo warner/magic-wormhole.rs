@@ -12,7 +12,7 @@ use serde_json;
 use super::api::APIEvent;
 use super::events::BossEvent;
 // we emit these
-use super::api::APIAction;
+use super::api::{ APIAction, WormholeError };
 use super::events::CodeEvent::{
     AllocateCode as C_AllocateCode, InputCode as C_InputCode,
     SetCode as C_SetCode,
@@ -33,8 +33,8 @@ enum State {
     Inputting(u32),
     Lonely(u32),
     Happy(u32),
-    Closing(Mood),
-    Closed(Mood),
+    Closing(Result<Mood, WormholeError>),
+    Closed,
 }
 
 pub struct BossMachine {
@@ -90,7 +90,7 @@ impl BossMachine {
                 }
                 Close => {
                     actions.push(T_Close(Mood::Lonely));
-                    Closing(Mood::Lonely)
+                    Closing(Ok(Mood::Lonely))
                 }
                 _ => panic!(),
             },
@@ -102,7 +102,7 @@ impl BossMachine {
                 }
                 Close => {
                     actions.push(T_Close(Mood::Lonely));
-                    Closing(Mood::Lonely)
+                    Closing(Ok(Mood::Lonely))
                 }
                 _ => panic!(),
             },
@@ -127,7 +127,7 @@ impl BossMachine {
                 }
                 Close => {
                     actions.push(T_Close(Mood::Lonely));
-                    Closing(Mood::Lonely)
+                    Closing(Ok(Mood::Lonely))
                 }
                 _ => panic!(),
             },
@@ -138,7 +138,7 @@ impl BossMachine {
                 }
                 Close => {
                     actions.push(T_Close(Mood::Lonely));
-                    Closing(Mood::Lonely)
+                    Closing(Ok(Mood::Lonely))
                 }
                 _ => panic!(),
             },
@@ -149,11 +149,11 @@ impl BossMachine {
                 }
                 Close => {
                     actions.push(T_Close(Mood::Happy));
-                    Closing(Mood::Happy)
+                    Closing(Ok(Mood::Happy))
                 }
                 _ => panic!(),
             },
-            Closing(_) | Closed(_) => panic!("No API calls after close"),
+            Closing(_) | Closed => panic!("No API calls after close"),
         });
         actions
     }
@@ -167,6 +167,22 @@ impl BossMachine {
         self.state = Some(match old_state {
             Unstarted => panic!("w.start() must be called first"),
             Empty(_) => match event {
+                ConnectionError(msg) => {
+                    // ConnectionError only happens when the first websocket
+                    // connection attempt fails
+                    let e = WormholeError::ConnectionError(msg);
+                    actions.push(APIAction::GotClosed(Err(e)));
+                    // we move directly to Closed because the websocket was
+                    // probably not opened in the first place. TODO: clean
+                    // this up, let Rendezvous tell us that fact.
+                    State::Closed
+                }
+                RxError(msg) => {
+                    // Server didn't like us. Attempt a graceful shutdown.
+                    let e = WormholeError::ServerError(msg);
+                    actions.push(T_Close(Mood::Errory(e)));
+                    Closing(Err(e))
+                }
                 RxWelcome(v) => {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
@@ -174,6 +190,16 @@ impl BossMachine {
                 _ => panic!(),
             },
             Coding(i) => match event {
+                ConnectionError(msg) => {
+                    let e = WormholeError::ConnectionError(msg);
+                    actions.push(APIAction::GotClosed(Err(e)));
+                    State::Closed
+                }
+                RxError(msg) => {
+                    let e = WormholeError::ServerError(msg);
+                    actions.push(T_Close(Mood::Errory(e)));
+                    Closing(Err(e))
+                }
                 RxWelcome(v) => {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
@@ -185,6 +211,16 @@ impl BossMachine {
                 _ => panic!(),
             },
             Inputting(i) => match event {
+                ConnectionError(msg) => {
+                    let e = WormholeError::ConnectionError(msg);
+                    actions.push(APIAction::GotClosed(Err(e)));
+                    State::Closed
+                }
+                RxError(msg) => {
+                    let e = WormholeError::ServerError(msg);
+                    actions.push(T_Close(Mood::Errory(e)));
+                    Closing(Err(e))
+                }
                 RxWelcome(v) => {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
@@ -196,6 +232,16 @@ impl BossMachine {
                 _ => panic!(),
             },
             Lonely(i) => match event {
+                ConnectionError(msg) => {
+                    let e = WormholeError::ConnectionError(msg);
+                    actions.push(APIAction::GotClosed(Err(e)));
+                    State::Closed
+                }
+                RxError(msg) => {
+                    let e = WormholeError::ServerError(msg);
+                    actions.push(T_Close(Mood::Errory(e)));
+                    Closing(Err(e))
+                }
                 RxWelcome(v) => {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
@@ -208,6 +254,16 @@ impl BossMachine {
                 _ => panic!(),
             },
             State::Happy(_) => match event {
+                ConnectionError(msg) => {
+                    let e = WormholeError::ConnectionError(msg);
+                    actions.push(APIAction::GotClosed(Err(e)));
+                    State::Closed
+                }
+                RxError(msg) => {
+                    let e = WormholeError::ServerError(msg);
+                    actions.push(T_Close(Mood::Errory(e)));
+                    Closing(Err(e))
+                }
                 RxWelcome(v) => {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
@@ -239,16 +295,18 @@ impl BossMachine {
                 // Error | RxError | Scared: TODO
                 _ => panic!(),
             },
-            Closing(mood) => match event {
+            Closing(result) => match event {
+                ConnectionError(..) => old_state,
+                RxError(..) => old_state,
                 RxWelcome(..) => old_state,
                 BossEvent::Happy => old_state,
                 BossEvent::Closed => {
-                    actions.push(APIAction::GotClosed(mood));
-                    State::Closed(mood)
+                    actions.push(APIAction::GotClosed(result));
+                    State::Closed
                 }
                 _ => panic!(),
             },
-            State::Closed(_) => panic!("No events after closed"),
+            State::Closed => panic!("No events after closed"),
         });
         actions
     }

@@ -97,11 +97,19 @@ impl RendezvousMachine {
                     actions.push(MailboxEvent::Connected);
                     actions.push(ListerEvent::Connected);
                     actions.push(AllocatorEvent::Connected);
+                    self.connected_at_least_once = true;
                     Connected(wsh)
                 }
                 WebSocketMessageReceived(..) => panic!(),
-                WebSocketConnectionLost(h) => {
+                WebSocketConnectionLost(h, err) => {
                     assert!(wsh == h);
+                    if !self.connected_at_least_once {
+                        // if the very first connections fails, we're
+                        // probably offline, or using the wrong URL, so fail
+                        // entirely rather than retrying.
+                        actions.push(BossEvent::ConnectionError(err));
+                        Stopped
+                    }
                     let th = self.new_timer_handle();
                     actions.push(IOAction::StartTimer(th, self.retry_delay));
                     Waiting(th)
@@ -117,7 +125,7 @@ impl RendezvousMachine {
                     self.receive(&message, &mut actions);
                     old_state
                 }
-                WebSocketConnectionLost(h) => {
+                WebSocketConnectionLost(h, _err) => {
                     assert!(wsh == h);
                     let th = self.new_timer_handle();
                     actions.push(IOAction::StartTimer(th, self.retry_delay));
@@ -150,7 +158,7 @@ impl RendezvousMachine {
                     panic!("bad transition from {:?}", self)
                 }
                 WebSocketMessageReceived(..) => panic!(),
-                WebSocketConnectionLost(h) => {
+                WebSocketConnectionLost(h, _err) => {
                     assert!(wsh == h);
                     actions.push(TerminatorEvent::Stopped);
                     Stopped
@@ -272,6 +280,9 @@ impl RendezvousMachine {
                     .map(|n| Nameplate(n.id.to_owned()))
                     .collect();
                 actions.push(ListerEvent::RxNameplates(nids));
+            }
+            Error { error, _orig } => {
+                actions.push(BossEvent::RxError(error));
             }
         };
     }
@@ -413,7 +424,7 @@ mod test {
         }
 
         actions =
-            filt(r.process_io(IOEvent::WebSocketConnectionLost(wsh))).events;
+            filt(r.process_io(IOEvent::WebSocketConnectionLost(wsh, "err"))).events;
         assert_eq!(actions.len(), 5);
         let e = actions.remove(0);
         match e {
@@ -460,7 +471,7 @@ mod test {
         }
 
         actions =
-            filt(r.process_io(IOEvent::WebSocketConnectionLost(wsh2))).events;
+            filt(r.process_io(IOEvent::WebSocketConnectionLost(wsh2, "err"))).events;
         assert_eq!(actions, vec![Terminator(T_Stopped)]);
     }
 }
