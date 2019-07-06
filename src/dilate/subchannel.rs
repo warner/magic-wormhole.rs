@@ -14,12 +14,14 @@ enum SubChannelEvent {
 }
 
 pub struct SubChannel {
+    scid: u32,
     state: Option<State>,
 }
 
 impl SubChannel {
-    pub fn new() -> SubChannel {
+    pub fn new(scid: u32) -> SubChannel {
         SubChannel {
+            scid,
             state: Some(State::Open),
         }
     }
@@ -31,23 +33,18 @@ impl SubChannel {
         use SubChannelEvent::*;
         self.state = Some(match old_state {
             Open => match event {
-                RemoteData(data) => panic!(),
-                RemoteClose => panic!(),
-                LocalData(data) => panic!(),
-                RemoteClose => panic!(),
+                LocalData(data) => { send_data(data); Open }
+                RemoteData(data) => { signal_dataReceived(data); Open }
+                LocalClose => { send_close(); Closing }
+                RemoteClose => { send_close(); signal_connectionLost(); Closed }
             },
             Closing => match event {
-                RemoteData(data) => panic!(),
-                RemoteClose => panic!(),
-                LocalData(data) => panic!(),
-                RemoteClose => panic!(),
+                LocalData(data) => panic!("write not allowed on closed subchannel"),
+                RemoteData(data) => { signal_dataReceived(data); Closing }
+                LocalClose => panic!("loseConnection not allowed on closed subchannel"),
+                RemoteClose => { signal_connectionLost(); Closed }
             },
-            Closed => match event {
-                RemoteData(data) => panic!(),
-                RemoteClose => panic!(),
-                LocalData(data) => panic!(),
-                RemoteClose => panic!(),
-            },
+            Closed => panic!("we should be deleted by now, no messages"),
         });
         actions
     }
