@@ -33,7 +33,7 @@ use log::trace;
 
 pub use self::api::{
     APIAction, APIEvent, Action, IOAction, IOEvent, InputHelperError, Mood,
-    TimerHandle, WSHandle,
+    TimerHandle, WormholeError, WSHandle,
 };
 pub use self::transfer::{
     direct_type, error_message, file_ack, message, message_ack,

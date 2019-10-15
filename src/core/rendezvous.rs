@@ -7,7 +7,7 @@
 // in Twisted, we delegate all of this to a ClientService, so there's a lot
 // more code and more states here
 
-use super::api::{TimerHandle, WSHandle};
+use super::api::{TimerHandle, WormholeError, WSHandle};
 use super::events::{
     AppID, Events, Mailbox, MySide, Nameplate, Phase, TheirSide,
 };
@@ -104,9 +104,8 @@ impl RendezvousMachine {
                     assert!(wsh == h);
                     if !self.connected_at_least_once {
                         // TODO: WebSocketConnectionLost(wsh, reason)
-                        let e = BossEvent::Error(String::from(
-                            "initial WebSocket connection lost",
-                        ));
+                        let msg = String::from("initial WebSocket connection lost");
+                        let e = BossEvent::Error(WormholeError::ConnectionFailure(msg));
                         actions.push(e);
                         Stopped
                     } else {
@@ -324,7 +323,7 @@ impl RendezvousMachine {
 mod test {
     use crate::core::api::IOAction;
     use crate::core::api::IOEvent;
-    use crate::core::api::{TimerHandle, WSHandle};
+    use crate::core::api::{TimerHandle, WormholeError, WSHandle};
     use crate::core::events::Event::{Nameplate, Rendezvous, Terminator, IO};
     use crate::core::events::RendezvousEvent::{
         Start as RC_Start, Stop as RC_Stop, TxBind as RC_TxBind,
@@ -495,11 +494,10 @@ mod test {
         assert!(actions.is_empty());
 
         let actions = filt(r.process_io(IOEvent::WebSocketConnectionLost(wsh)));
+        let msg = String::from("initial WebSocket connection lost");
         assert_eq!(
             actions,
-            events![BossEvent::Error(String::from(
-                "initial WebSocket connection lost"
-            ))]
+            events![BossEvent::Error(WormholeError::ConnectionFailure(msg))],
         );
     }
 }

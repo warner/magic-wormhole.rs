@@ -6,6 +6,23 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(PartialEq)]
+pub enum WormholeError {
+    BadState(String),
+    ConnectionFailure(String),
+}
+
+impl fmt::Display for WormholeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use WormholeError::*;
+        write!(f, "WormholeError::{}",
+               match *self {
+                   BadState(ref s) => format!("Internal Error: bad state transition: {}", s),
+                   ConnectionFailure(ref s) => format!("ConnectionFailure: {}", s),
+               })
+    }
+}
+
+#[derive(PartialEq)]
 pub enum APIEvent {
     // from application to IO glue to WormholeCore
     Start,

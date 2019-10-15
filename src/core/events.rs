@@ -5,7 +5,7 @@ use std::iter::FromIterator;
 use std::ops::Deref;
 use std::sync::Arc;
 // Events come into the core, Actions go out of it (to the IO glue layer)
-use super::api::{APIAction, IOAction, Mood};
+use super::api::{APIAction, IOAction, Mood, WormholeError};
 use super::timing::TimingLogEvent;
 use super::util::maybe_utf8;
 
@@ -156,7 +156,7 @@ pub enum AllocatorEvent {
 pub enum BossEvent {
     RxWelcome(Value),
     RxError(String),
-    Error(String),
+    Error(WormholeError),
     Closed,
     GotCode(Code),
     GotKey(Key), // TODO: fixed length?
@@ -172,7 +172,7 @@ impl fmt::Debug for BossEvent {
         let t = match *self {
             RxWelcome(ref v) => format!("RxWelcome({:?})", v),
             RxError(ref s) => format!("RxError({})", s),
-            Error(ref s) => format!("Error({})", s),
+            Error(ref we) => format!("Error({})", we),
             Closed => String::from("Closed"),
             GotCode(ref code) => format!("GotCode({:?})", code),
             GotKey(ref _key) => String::from("GotKey(REDACTED)"),

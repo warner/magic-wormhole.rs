@@ -171,7 +171,7 @@ impl BossMachine {
                     actions.push(APIAction::GotWelcome(v));
                     old_state
                 }
-                Error(_s) => {
+                Error(_we) => {
                     // e.g. Rendezvous cannot make the initial websocket
                     // connection
                     actions.push(APIAction::GotClosed(Mood::Errory));
@@ -197,7 +197,7 @@ impl BossMachine {
                     actions.push(APIAction::GotCode(code));
                     Lonely(i)
                 }
-                Error(_s) | RxError(_s) => {
+                Error(_) | RxError(_) => {
                     actions.push(APIAction::GotClosed(Mood::Errory));
                     State::Closed(Mood::Errory)
                 }
@@ -212,7 +212,7 @@ impl BossMachine {
                     actions.push(APIAction::GotCode(code));
                     Lonely(i)
                 }
-                Error(_s) | RxError(_s) => {
+                Error(_) | RxError(_) => {
                     actions.push(APIAction::GotClosed(Mood::Errory));
                     State::Closed(Mood::Errory)
                 }
@@ -228,7 +228,7 @@ impl BossMachine {
                     old_state
                 }
                 BossEvent::Happy => State::Happy(i),
-                Error(_s) | RxError(_s) => {
+                Error(_) | RxError(_) => {
                     actions.push(APIAction::GotClosed(Mood::Errory));
                     State::Closed(Mood::Errory)
                 }
@@ -263,7 +263,7 @@ impl BossMachine {
                     }
                     old_state
                 }
-                Error(_s) | RxError(_s) => {
+                Error(_) | RxError(_) => {
                     actions.push(APIAction::GotClosed(Mood::Errory));
                     State::Closed(Mood::Errory)
                 }
@@ -277,7 +277,7 @@ impl BossMachine {
                     actions.push(APIAction::GotClosed(mood));
                     State::Closed(mood)
                 }
-                Error(_s) | RxError(_s) => {
+                Error(_) | RxError(_) => {
                     actions.push(APIAction::GotClosed(Mood::Errory));
                     State::Closed(Mood::Errory)
                 }
