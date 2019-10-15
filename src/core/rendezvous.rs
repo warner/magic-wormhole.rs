@@ -7,7 +7,7 @@
 // in Twisted, we delegate all of this to a ClientService, so there's a lot
 // more code and more states here
 
-use super::api::{TimerHandle, WormholeError, WSHandle};
+use super::api::{TimerHandle, WSHandle, WormholeError};
 use super::events::{
     AppID, Events, Mailbox, MySide, Nameplate, Phase, TheirSide,
 };
@@ -104,8 +104,11 @@ impl RendezvousMachine {
                     assert!(wsh == h);
                     if !self.connected_at_least_once {
                         // TODO: WebSocketConnectionLost(wsh, reason)
-                        let msg = String::from("initial WebSocket connection lost");
-                        let e = BossEvent::Error(WormholeError::ConnectionFailure(msg));
+                        let msg =
+                            String::from("initial WebSocket connection lost");
+                        let e = BossEvent::Error(
+                            WormholeError::ConnectionFailure(msg),
+                        );
                         actions.push(e);
                         Stopped
                     } else {
@@ -323,7 +326,7 @@ impl RendezvousMachine {
 mod test {
     use crate::core::api::IOAction;
     use crate::core::api::IOEvent;
-    use crate::core::api::{TimerHandle, WormholeError, WSHandle};
+    use crate::core::api::{TimerHandle, WSHandle, WormholeError};
     use crate::core::events::Event::{Nameplate, Rendezvous, Terminator, IO};
     use crate::core::events::RendezvousEvent::{
         Start as RC_Start, Stop as RC_Stop, TxBind as RC_TxBind,

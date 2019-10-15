@@ -27,13 +27,13 @@ mod util;
 mod wordlist;
 
 pub use self::events::{AppID, Code};
-use self::events::{Event, Events, MySide, Nameplate};
+use self::events::{BossEvent, Event, Events, MySide, Nameplate};
 use self::util::random_bytes;
 use log::trace;
 
 pub use self::api::{
     APIAction, APIEvent, Action, IOAction, IOEvent, InputHelperError, Mood,
-    TimerHandle, WormholeError, WSHandle,
+    TimerHandle, WSHandle, WormholeError,
 };
 pub use self::transfer::{
     direct_type, error_message, file_ack, message, message_ack,
@@ -108,13 +108,13 @@ impl WormholeCore {
     pub fn do_api(&mut self, event: APIEvent) -> Vec<Action> {
         trace!("api: {:?}", event);
         let events = self.boss.process_api(event);
-        self._execute(events)
+        self._close_on_error(events)
     }
 
     pub fn do_io(&mut self, event: IOEvent) -> Vec<Action> {
         trace!("io: {:?}", event);
         let events = self.rendezvous.process_io(event);
-        self._execute(events)
+        self._close_on_error(events)
     }
 
     pub fn derive_key(&mut self, _purpose: &str, _length: u8) -> Vec<u8> {
@@ -145,7 +145,23 @@ impl WormholeCore {
         self.input.committed_nameplate()
     }
 
-    fn _execute(&mut self, events: Events) -> Vec<Action> {
+    fn _close_on_error(&mut self, events: Events) -> Vec<Action> {
+        match self._execute(events) {
+            Ok(actions) => actions,
+            Err(err) => {
+                // If any events cause an error Result, all progress is
+                // abandoned and we notify the Boss. If they haven't already
+                // signalled a Close, they will signal Close(Errory).
+                let error_events = events![BossEvent::Error(err)];
+                self._execute(error_events).expect("recursive error")
+            }
+        }
+    }
+
+    fn _execute(
+        &mut self,
+        events: Events,
+    ) -> Result<Vec<Action>, WormholeError> {
         let mut action_queue: Vec<Action> = Vec::new(); // returned
         let mut event_queue: VecDeque<Event> = VecDeque::new();
 
@@ -189,7 +205,7 @@ impl WormholeCore {
                 }
             }
         }
-        action_queue
+        Ok(action_queue)
     }
 }
 

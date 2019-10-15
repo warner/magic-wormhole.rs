@@ -5,7 +5,7 @@ use serde_json::Value;
 use std::error::Error;
 use std::fmt;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum WormholeError {
     BadState(String),
     ConnectionFailure(String),
@@ -14,11 +14,16 @@ pub enum WormholeError {
 impl fmt::Display for WormholeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use WormholeError::*;
-        write!(f, "WormholeError::{}",
-               match *self {
-                   BadState(ref s) => format!("Internal Error: bad state transition: {}", s),
-                   ConnectionFailure(ref s) => format!("ConnectionFailure: {}", s),
-               })
+        write!(
+            f,
+            "WormholeError::{}",
+            match *self {
+                BadState(ref s) => {
+                    format!("Internal Error: bad state transition: {}", s)
+                }
+                ConnectionFailure(ref s) => format!("ConnectionFailure: {}", s),
+            }
+        )
     }
 }
 
