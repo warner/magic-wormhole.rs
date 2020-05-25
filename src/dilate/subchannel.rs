@@ -1,4 +1,4 @@
-
+/*
 #[derive(Debug, PartialEq)]
 enum State {
     Open,
@@ -49,3 +49,4 @@ impl SubChannel {
         actions
     }
 }
+*/
