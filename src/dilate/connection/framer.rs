@@ -2,6 +2,7 @@
 
 use std::str;
 use std::convert::TryInto;
+use super::types::Frame;
 
 pub struct FramerError(String);
 
@@ -39,8 +40,6 @@ fn get_expected(buffer: &mut Vec<u8>, name: &str, expected: &[u8])
     // good so far, just waiting for the rest
     return Ok(Waiting);
 }
-
-pub struct Frame(Vec<u8>);
 
 fn frame_data(frame: Frame) -> Vec<u8> {
     let len = frame.0.len();

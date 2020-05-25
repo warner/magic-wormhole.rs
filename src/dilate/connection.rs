@@ -38,4 +38,6 @@ impl Connection {
 }
 */
 
+pub mod types;
 pub mod framer;
+pub mod record;
